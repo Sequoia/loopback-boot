@@ -8,7 +8,12 @@ var boot = require('../');
 var path = require('path');
 var loopback = require('loopback');
 var assert = require('assert');
-var expect = require('chai').expect;
+
+var chai = require('chai');
+var dirtyChai = require('dirty-chai');
+var expect = chai.expect;
+chai.use(dirtyChai);
+
 var fs = require('fs-extra');
 var sandbox = require('./helpers/sandbox');
 var appdir = require('./helpers/appdir');
@@ -61,13 +66,13 @@ describe('executor', function() {
 
   describe('when booting', function() {
     it('should set the `booting` flag during execution', function(done) {
-      expect(app.booting).to.be.undefined;
+      expect(app.booting).to.be.undefined();
       simpleAppInstructions(function(err, context) {
         if (err) return done(err);
         boot.execute(app, context.instructions, function(err) {
           expect(err).to.not.exist;
-          expect(process.bootingFlagSet).to.be.true;
-          expect(app.booting).to.be.false;
+          expect(process.bootingFlagSet).to.be.true();
+          expect(app.booting).to.be.false();
           done();
         });
       });
@@ -409,16 +414,16 @@ describe('executor', function() {
     });
 
     it('should honor host and port', function(done) {
-      function assertHonored(portKey, hostKey, done) {
+      function assertHonored(portKey, hostKey, cb) {
         process.env[hostKey] = randomPort();
         process.env[portKey] = randomHost();
         bootWithDefaults(function(err) {
-          if (err) return done(err);
+          if (err) return cb(err);
           assert.equal(app.get('port'), process.env[portKey], portKey);
           assert.equal(app.get('host'), process.env[hostKey], hostKey);
           delete process.env[portKey];
           delete process.env[hostKey];
-          done();
+          cb();
         });
       }
 
@@ -429,8 +434,8 @@ describe('executor', function() {
         { port: 'OPENSHIFT_SLS_PORT', host: 'OPENSHIFT_SLS_IP' },
         { port: 'VCAP_APP_PORT', host: 'VCAP_APP_HOST' },
         { port: 'PORT', host: 'HOST' },
-      ], function(config, done) {
-        assertHonored(config.port, config.host, done);
+      ], function(config, cb) {
+        assertHonored(config.port, config.host, cb);
       }, done);
     });
 
@@ -655,8 +660,8 @@ describe('executor', function() {
           supertest(app)
             .get('/')
             .end(function(err, res) {
-              expect(err).to.be.null;
-              expect(res.body.path).to.be.undefined;
+              expect(err).to.be.null();
+              expect(res.body.path).to.be.undefined();
               cb();
             });
         }, cb);
@@ -674,7 +679,7 @@ describe('executor', function() {
         supertest(app)
           .get('/')
           .end(function(err, res) {
-            expect(err).to.be.null;
+            expect(err).to.be.null();
             done();
           });
       });
@@ -832,7 +837,7 @@ describe('executor', function() {
     boot.execute(app, someInstructions({ bootScripts: [file] }),
       function(err) {
         if (err) return done(err);
-        expect(app.fnCalled, 'exported fn was called').to.be.true;
+        expect(app.fnCalled, 'exported fn was called').to.be.true();
         done();
       });
   });
@@ -1022,12 +1027,12 @@ describe('executor', function() {
 
   describe('when booting with env', function() {
     it('should set the `booting` flag during execution', function(done) {
-      expect(app.booting).to.be.undefined;
+      expect(app.booting).to.be.undefined();
       envAppInstructions(function(err, context) {
         if (err) return done(err);
         boot.execute(app, context.instructions, function(err) {
           if (err) return done(err);
-          expect(app.booting).to.be.false;
+          expect(app.booting).to.be.false();
           expect(process.bootFlags).to.not.have.property('barLoadedInTest');
           done();
         });
@@ -1155,8 +1160,8 @@ describe('executor', function() {
       var bootInstructions = { dataSources: datasource };
 
       boot.execute(app, someInstructions(bootInstructions), function() {
-        expect(app.get('DYNAMIC_HOST')).to.be.undefined;
-        expect(app.datasources.mydb.settings.host).to.be.undefined;
+        expect(app.get('DYNAMIC_HOST')).to.be.undefined();
+        expect(app.datasources.mydb.settings.host).to.be.undefined();
         done();
       });
     });
